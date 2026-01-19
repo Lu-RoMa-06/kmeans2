@@ -98,4 +98,7 @@ def index():
                            metrics=metrics, current_k=n_clusters)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    # Render usa la variable de entorno PORT. Si no existe, usa 10000 por defecto.
+    port = int(os.environ.get('PORT', 10000))
+    # Usamos host='0.0.0.0' para que sea accesible externamente
+    app.run(debug=False, host='0.0.0.0', port=port)
