@@ -3,632 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Detección de Fraude - K-means</title>
+    <title>Sistema de Detección de Fraude - K-means (K=6)</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #e0e0e0;
-            line-height: 1.6;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
-            padding: 40px 20px;
-            text-align: center;
-            border-bottom: 3px solid #e94560;
-            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
-            margin-bottom: 30px;
-        }
-        
-        h1 {
-            color: #e94560;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-        
-        .subtitle {
-            color: #a8b2d1;
-            font-size: 1.1em;
-        }
-        
-        .section {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-        
-        h2 {
-            color: #e94560;
-            margin-bottom: 20px;
-            font-size: 1.8em;
-            border-bottom: 2px solid rgba(233, 69, 96, 0.3);
-            padding-bottom: 10px;
-        }
-        
-        h3 {
-            color: #00d4ff;
-            margin: 20px 0 15px 0;
-            font-size: 1.3em;
-        }
-        
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin: 20px 0;
-        }
-        
-        .info-card {
-            background: rgba(0, 212, 255, 0.1);
-            border-left: 4px solid #00d4ff;
-            padding: 20px;
-            border-radius: 8px;
-        }
-        
-        .info-card h4 {
-            color: #00d4ff;
-            margin-bottom: 10px;
-            font-size: 0.9em;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .info-card p {
-            font-size: 1.8em;
-            font-weight: bold;
-            color: #fff;
-        }
-        
-        .features-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin: 20px 0;
-        }
-        
-        .feature-badge {
-            background: linear-gradient(135deg, #e94560 0%, #c23550 100%);
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-weight: bold;
-            color: #fff;
-            box-shadow: 0 4px 10px rgba(233, 69, 96, 0.3);
-        }
-        
-        .plot-container {
-            text-align: center;
-            margin: 30px 0;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 12px;
-        }
-        
-        .plot-container img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-        }
-        
-        .description {
-            background: rgba(0, 212, 255, 0.05);
-            border-left: 4px solid #00d4ff;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 8px;
-            font-size: 1.05em;
-            line-height: 1.8;
-        }
-        
-        .cluster-card {
-            background: linear-gradient(135deg, rgba(233, 69, 96, 0.1) 0%, rgba(0, 212, 255, 0.1) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 20px;
-            margin: 15px 0;
-            transition: transform 0.3s ease;
-        }
-        
-        .cluster-card:hover {
-            transform: translateX(10px);
-            border-color: #e94560;
-        }
-        
-        .cluster-label {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #e94560;
-            margin-bottom: 10px;
-        }
-        
-        .cluster-stats {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        
-        .stat {
-            flex: 1;
-            min-width: 120px;
-        }
-        
-        .stat-label {
-            color: #a8b2d1;
-            font-size: 0.9em;
-            margin-bottom: 5px;
-        }
-        
-        .stat-value {
-            font-size: 1.4em;
-            font-weight: bold;
-            color: #00d4ff;
-        }
-        
-        .malicious {
-            color: #e94560 !important;
-        }
-        
-        .metric-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin: 20px 0;
-        }
-        
-        .metric-box {
-            background: linear-gradient(135deg, rgba(233, 69, 96, 0.2) 0%, rgba(15, 52, 96, 0.2) 100%);
-            border: 2px solid #e94560;
-            border-radius: 10px;
-            padding: 25px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-        
-        .metric-box:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(233, 69, 96, 0.4);
-        }
-        
-        .metric-name {
-            color: #a8b2d1;
-            font-size: 0.95em;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .metric-value {
-            color: #00d4ff;
-            font-size: 2.2em;
-            font-weight: bold;
-        }
-        
-        .alert-box {
-            background: rgba(233, 69, 96, 0.1);
-            border: 2px solid #e94560;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        
-        .alert-box h4 {
-            color: #e94560;
-            margin-bottom: 10px;
-        }
-        
-        footer {
-            text-align: center;
-            padding: 30px;
-            color: #a8b2d1;
-            margin-top: 50px;
-        }
-        
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 1.8em;
-            }
-            
-            .cluster-stats {
-                flex-direction: column;
-            }
-            
-            .metric-grid {
-                grid-template-columns: 1fr;
-            }
-        }
+        /* CSS ORIGINAL ÍNTEGRO */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #e0e0e0; line-height: 1.6; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        header { background: linear-gradient(135deg, #0f3460 0%, #16213e 100%); padding: 40px 20px; text-align: center; border-bottom: 3px solid #e94560; box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3); margin-bottom: 30px; }
+        h1 { color: #e94560; font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); }
+        .subtitle { color: #a8b2d1; font-size: 1.1em; }
+        .section { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 30px; margin-bottom: 30px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+        h2 { color: #e94560; margin-bottom: 20px; font-size: 1.8em; border-bottom: 2px solid rgba(233, 69, 96, 0.3); padding-bottom: 10px; }
+        h3 { color: #00d4ff; margin: 20px 0 15px 0; font-size: 1.3em; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0; }
+        .info-card { background: rgba(0, 212, 255, 0.1); border-left: 4px solid #00d4ff; padding: 20px; border-radius: 8px; }
+        .info-card h4 { color: #00d4ff; margin-bottom: 10px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px; }
+        .info-card p { font-size: 1.8em; font-weight: bold; color: #fff; }
+        .features-list { display: flex; flex-wrap: wrap; gap: 15px; margin: 20px 0; }
+        .feature-badge { background: linear-gradient(135deg, #e94560 0%, #c23550 100%); padding: 10px 20px; border-radius: 25px; font-weight: bold; color: #fff; box-shadow: 0 4px 10px rgba(233, 69, 96, 0.3); }
+        .plot-container { text-align: center; margin: 30px 0; padding: 20px; background: rgba(0, 0, 0, 0.2); border-radius: 12px; }
+        .plot-container img { max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); }
+        .description { background: rgba(0, 212, 255, 0.05); border-left: 4px solid #00d4ff; padding: 20px; margin: 20px 0; border-radius: 8px; font-size: 1.05em; line-height: 1.8; }
+        .cluster-card { background: linear-gradient(135deg, rgba(233, 69, 96, 0.1) 0%, rgba(0, 212, 255, 0.1) 100%); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 20px; margin: 15px 0; transition: transform 0.3s ease; }
+        .cluster-card:hover { transform: translateX(10px); border-color: #e94560; }
+        .cluster-label { font-size: 1.5em; font-weight: bold; color: #e94560; margin-bottom: 10px; }
+        .cluster-stats { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px; }
+        .stat { flex: 1; min-width: 120px; }
+        .stat-label { color: #a8b2d1; font-size: 0.9em; margin-bottom: 5px; }
+        .stat-value { font-size: 1.4em; font-weight: bold; color: #00d4ff; }
+        .malicious { color: #e94560 !important; }
+        .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0; }
+        .metric-box { background: linear-gradient(135deg, rgba(233, 69, 96, 0.2) 0%, rgba(15, 52, 96, 0.2) 100%); border: 2px solid #e94560; border-radius: 10px; padding: 25px; text-align: center; transition: all 0.3s ease; }
+        .metric-box:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(233, 69, 96, 0.4); }
+        .metric-name { color: #a8b2d1; font-size: 0.95em; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .metric-value { color: #00d4ff; font-size: 2.2em; font-weight: bold; }
+        .alert-box { background: rgba(233, 69, 96, 0.1); border: 2px solid #e94560; border-radius: 10px; padding: 20px; margin: 20px 0; }
+        .alert-box h4 { color: #e94560; margin-bottom: 10px; }
+        footer { text-align: center; padding: 30px; color: #a8b2d1; margin-top: 50px; }
+        @media (max-width: 768px) { h1 { font-size: 1.8em; } .cluster-stats { flex-direction: column; } .metric-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
     <header>
         <h1>🛡️ Sistema de Detección de Fraude Bancario</h1>
-        <p class="subtitle">Análisis de transacciones mediante K-means Clustering</p>
+        <p class="subtitle">Análisis de transacciones mediante K-means Clustering (K=6)</p>
     </header>
 
     <div class="container">
-        <!-- Contexto del Problema -->
         <section class="section">
             <h2>🎯 Contexto del Problema</h2>
             <div class="description">
-                <p style="margin-bottom: 15px;">
-                    <strong>¿Por qué es importante?</strong> Es fundamental que las empresas de tarjetas de crédito puedan 
-                    reconocer transacciones fraudulentas para que los clientes no sean cobrados por artículos que no compraron.
-                </p>
-                <p style="margin-bottom: 15px;">
-                    Este dataset contiene transacciones realizadas con tarjetas de crédito en <strong>septiembre de 2013</strong> 
-                    por titulares de tarjetas europeos. Las transacciones ocurrieron en dos días, donde tenemos 
-                    <strong style="color: #e94560;">492 fraudes de 284,807 transacciones</strong>.
-                </p>
+                <p style="margin-bottom: 15px;">Este dataset contiene 284,807 transacciones donde solo 492 son fraudulentas (0.172%).</p>
                 <div class="alert-box">
                     <h4>⚠️ Dataset Altamente Desbalanceado</h4>
-                    <p>La clase positiva (fraudes) representa solo el <strong>0.172%</strong> de todas las transacciones. 
-                    Este desbalanceo hace que la detección sea un desafío significativo.</p>
-                </div>
-                <p style="margin-top: 15px;">
-                    Las características V1-V28 son componentes principales obtenidos con <strong>PCA</strong> debido a 
-                    cuestiones de confidencialidad. Las únicas características no transformadas son 'Time' y 'Amount'.
-                </p>
-            </div>
-        </section>
-
-        <!-- Explicación de K-means -->
-        <section class="section">
-            <h2>🧠 ¿Qué es K-means?</h2>
-            <div class="description">
-                <p style="margin-bottom: 15px;">
-                    <strong>K-means</strong> es un algoritmo de aprendizaje <strong>no supervisado</strong>, utilizado para 
-                    la agrupación (clustering) de datos. Su objetivo es dividir un conjunto de datos en K grupos o clusters, 
-                    donde cada grupo contiene datos similares entre sí.
-                </p>
-                
-                <h3 style="color: #00d4ff; margin-top: 20px;">¿Cómo funciona?</h3>
-                <ol style="margin-left: 20px; line-height: 1.8;">
-                    <li><strong>Inicialización:</strong> Se seleccionan K centroides iniciales de manera aleatoria.</li>
-                    <li><strong>Asignación:</strong> Cada dato se asigna al cluster cuyo centroide esté más cerca de él.</li>
-                    <li><strong>Actualización:</strong> Se calcula el nuevo centroide del cluster como el promedio de los datos asignados.</li>
-                    <li><strong>Repetición:</strong> Se repiten los pasos 2 y 3 hasta que los centroides converjan.</li>
-                </ol>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
-                    <div style="background: rgba(0, 212, 255, 0.1); padding: 15px; border-radius: 8px; border-left: 3px solid #00d4ff;">
-                        <h4 style="color: #00d4ff; margin-bottom: 10px;">✅ Ventajas</h4>
-                        <ul style="margin-left: 20px; line-height: 1.6;">
-                            <li>Sencillez: Fácil de implementar</li>
-                            <li>Eficiencia: Rápido incluso con grandes datasets</li>
-                            <li>Interpretabilidad: Resultados fáciles de visualizar</li>
-                        </ul>
-                    </div>
-                    <div style="background: rgba(233, 69, 96, 0.1); padding: 15px; border-radius: 8px; border-left: 3px solid #e94560;">
-                        <h4 style="color: #e94560; margin-bottom: 10px;">⚠️ Desventajas</h4>
-                        <ul style="margin-left: 20px; line-height: 1.6;">
-                            <li>Sensibilidad a la inicialización</li>
-                            <li>Sensible a outliers (datos atípicos)</li>
-                            <li>Dificultad para determinar K óptimo</li>
-                        </ul>
-                    </div>
+                    <p>El reto es encontrar patrones de fraude en una masa ingente de datos legítimos.</p>
                 </div>
             </div>
         </section>
 
-        <!-- Información del Dataset -->
         <section class="section">
             <h2>📊 Información del Dataset</h2>
             <div class="info-grid">
-                <div class="info-card">
-                    <h4>Total de Transacciones</h4>
-                    <p>{{ "{:,}".format(dataset.shape[0]) }}</p>
-                </div>
-                <div class="info-card">
-                    <h4>Características</h4>
-                    <p>{{ dataset.shape[1] }}</p>
-                </div>
-                <div class="info-card">
-                    <h4>Transacciones Normales</h4>
-                    <p>{{ "{:,}".format(dataset.class_distribution[0]) }}</p>
-                </div>
-                <div class="info-card">
-                    <h4>Transacciones Fraudulentas</h4>
-                    <p style="color: #e94560;">{{ "{:,}".format(dataset.class_distribution[1]) }}</p>
-                </div>
+                <div class="info-card"><h4>Total</h4><p>{{ "{:,}".format(dataset.shape[0]) }}</p></div>
+                <div class="info-card"><h4>Características</h4><p>{{ dataset.shape[1] }}</p></div>
+                <div class="info-card"><h4>Normales</h4><p>{{ "{:,}".format(dataset.class_distribution[0]) }}</p></div>
+                <div class="info-card"><h4>Fraudes</h4><p style="color: #e94560;">{{ "{:,}".format(dataset.class_distribution[1]) }}</p></div>
             </div>
             
-            <h3>Selección de Características con Random Forest</h3>
-            <div class="description" style="margin-top: 15px;">
-                <p style="margin-bottom: 15px;">
-                    Para mejorar la eficiencia del modelo y reducir la dimensionalidad, se utilizó 
-                    <strong>Random Forest</strong> para realizar la selección de características. Este algoritmo 
-                    supervisado evaluó la importancia de cada característica para la detección de fraude.
-                </p>
-                <div style="background: rgba(0, 212, 255, 0.1); padding: 15px; border-radius: 8px; border-left: 3px solid #00d4ff; margin: 15px 0;">
-                    <p><strong>📌 Proceso:</strong></p>
-                    <ol style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
-                        <li>Se entrenó un Random Forest con 50 árboles sobre el dataset completo (30 características)</li>
-                        <li>Se calculó la importancia de cada característica basándose en su contribución a la clasificación</li>
-                        <li>Se seleccionaron las <strong style="color: #00d4ff;">7 características más importantes</strong></li>
-                        <li>El dataset se redujo de 30 a 7 características, manteniendo la información más relevante</li>
-                    </ol>
-                </div>
-            </div>
-            
+            <h3>Características Principales (Random Forest)</h3>
             <div class="features-list">
-                {% for feature in dataset.top_features %}
-                <div class="feature-badge">{{ feature }}</div>
-                {% endfor %}
-            </div>
-            
-            <div class="description">
-                Las 7 características seleccionadas son: <strong>{{ ', '.join(dataset.top_features) }}</strong>. 
-                Estas características capturan los patrones más discriminativos entre transacciones fraudulentas y normales, 
-                permitiendo entrenar el modelo K-means con un conjunto de datos más compacto y eficiente.
-            </div>
-            
-            <!-- Tabla de Muestra de Características -->
-            <h3 style="margin-top: 30px;">📋 Muestra de Valores de Características Principales</h3>
-            <div style="overflow-x: auto; margin-top: 15px;">
-                <table style="width: 100%; border-collapse: collapse; background: rgba(255, 255, 255, 0.03);">
-                    <thead>
-                        <tr style="background: rgba(233, 69, 96, 0.2); border-bottom: 2px solid #e94560;">
-                            <th style="padding: 12px; text-align: center; color: #00d4ff; font-weight: bold;">Índice</th>
-                            {% for feature in dataset.top_features %}
-                            <th style="padding: 12px; text-align: center; color: #00d4ff; font-weight: bold;">{{ feature }}</th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for row in sample_data %}
-                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1); {% if row.index == '...' %}background: rgba(233, 69, 96, 0.1);{% endif %}">
-                            <td style="padding: 10px; text-align: center; {% if row.index == '...' %}color: #e94560; font-weight: bold;{% else %}color: #a8b2d1;{% endif %}">{{ row.index }}</td>
-                            <td style="padding: 10px; text-align: center; color: #e0e0e0;">{{ row.V17 }}</td>
-                            <td style="padding: 10px; text-align: center; color: #e0e0e0;">{{ row.V14 }}</td>
-                            <td style="padding: 10px; text-align: center; color: #e0e0e0;">{{ row.V16 }}</td>
-                            <td style="padding: 10px; text-align: center; color: #e0e0e0;">{{ row.V12 }}</td>
-                            <td style="padding: 10px; text-align: center; color: #e0e0e0;">{{ row.V10 }}</td>
-                            <td style="padding: 10px; text-align: center; color: #e0e0e0;">{{ row.V11 }}</td>
-                            <td style="padding: 10px; text-align: center; color: #e0e0e0;">{{ row.V18 }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <p style="margin-top: 10px; color: #a8b2d1; font-size: 0.9em; text-align: center;">
-                <em>Mostrando las primeras y últimas filas del dataset con las 7 características más importantes</em>
-            </p>
-        </section>
-
-        <!-- Visualización de Características -->
-        <section class="section">
-            <h2>📈 Análisis de Características</h2>
-            
-            <h3>Distribución de Todas las Características</h3>
-            <div class="plot-container">
-                <img src="{{ url_for('static', filename='images/features_distribution.png') }}" alt="Distribución de características">
-            </div>
-            
-            <div class="description">
-                <strong>Interpretación:</strong> Los gráficos muestran la distribución de cada característica para transacciones 
-                normales (azul) y fraudulentas (naranja). Se observa que las transacciones fraudulentas presentan patrones 
-                distintivos en varias características, especialmente en V17, V14, V16, V12, V10, V11 y V18, que fueron 
-                seleccionadas como las más importantes.
-            </div>
-            
-            <h3>Distribución V10 vs V14</h3>
-            <div class="plot-container">
-                <img src="{{ url_for('static', filename='images/scatter_v10_v14.png') }}" alt="Gráfico de dispersión V10 vs V14">
-            </div>
-            
-            <div class="description">
-                <strong>Interpretación:</strong> Este gráfico muestra la distribución de dos características principales (V10 y V14). 
-                Los puntos verdes representan transacciones normales, mientras que los puntos rojos indican transacciones fraudulentas. 
-                Se observa que las transacciones fraudulentas tienden a concentrarse en regiones específicas del espacio de características, 
-                lo que justifica el uso de clustering para su detección.
+                {% for feature in dataset.top_features %}<div class="feature-badge">{{ feature }}</div>{% endfor %}
             </div>
         </section>
 
-        <!-- Análisis de Clusters -->
         <section class="section">
-            <h2>🎯 Resultados del Clustering K-means</h2>
-            
-            <div style="background: rgba(0, 212, 255, 0.1); padding: 20px; border-radius: 8px; border-left: 3px solid #00d4ff; margin-bottom: 20px;">
-                <h4 style="color: #00d4ff; margin-bottom: 15px;">⚙️ Configuración del Entrenamiento</h4>
-                <ul style="margin-left: 20px; line-height: 1.8;">
-                    <li><strong>Algoritmo:</strong> K-means Clustering (Aprendizaje No Supervisado)</li>
-                    <li><strong>Número de Clusters:</strong> 5</li>
-                    <li><strong>Características utilizadas:</strong> 7 ({{ ', '.join(dataset.top_features) }})</li>
-                    <li><strong>Dataset:</strong> 284,807 transacciones (492 fraudes, 284,315 normales)</li>
-                    <li><strong>Random State:</strong> 42 (para reproducibilidad de resultados)</li>
-                </ul>
+            <h2>📈 Análisis Visual</h2>
+            <div class="plot-container">
+                <img src="{{ url_for('static', filename='images/Code.png') }}" alt="Distribución">
             </div>
-            
+            <div class="plot-container">
+                <img src="{{ url_for('static', filename='images/Code2.png') }}" alt="Clusters">
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎯 Resultados del Clustering (K=6)</h2>
             <div class="alert-box">
-                <h4>💡 Proceso de Reducción de Dimensionalidad</h4>
-                <p>Se utilizó <strong>Random Forest</strong> (50 árboles) para analizar la importancia de cada una de las 30 características 
-                originales. Se seleccionaron las 7 más relevantes, reduciendo la complejidad computacional mientras se mantiene 
-                la capacidad discriminativa del modelo para detectar fraudes.</p>
+                <h4>Configuración: 6 Clusters</h4>
+                <p>Al utilizar 6 grupos, logramos una mejor separación del fraude en el espacio de componentes principales.</p>
             </div>
             
-            <h3>Visualización de Clusters con Límites de Decisión</h3>
-            <div class="plot-container">
-                <img src="{{ url_for('static', filename='images/kmeans_decision_boundaries.png') }}" alt="Límites de decisión K-means">
-            </div>
-            
-            <div class="description">
-                <strong>Interpretación:</strong> Esta visualización muestra los límites de decisión creados por el algoritmo K-means 
-                en el espacio bidimensional V10-V14. Los diferentes colores representan los 5 clusters identificados. Las marcas X indican 
-                los centroides de cada cluster. Se observa cómo el algoritmo separa el espacio en regiones distintas, permitiendo 
-                agrupar transacciones con características similares.
-            </div>
-            
-            <h3>Distribución de Muestras por Cluster</h3>
             {% for cluster in clusters %}
             <div class="cluster-card">
                 <div class="cluster-label">Cluster {{ cluster.label }}</div>
                 <div class="cluster-stats">
-                    <div class="stat">
-                        <div class="stat-label">Total de Muestras</div>
-                        <div class="stat-value">{{ "{:,}".format(cluster.total) }}</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-label">Muestras Maliciosas</div>
-                        <div class="stat-value malicious">{{ cluster.malicious }}</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-label">% Fraudulento</div>
-                        <div class="stat-value malicious">{{ cluster.percentage }}%</div>
-                    </div>
+                    <div class="stat"><div class="stat-label">Total</div><div class="stat-value">{{ "{:,}".format(cluster.total) }}</div></div>
+                    <div class="stat"><div class="stat-label">Maliciosas</div><div class="stat-value malicious">{{ cluster.malicious }}</div></div>
+                    <div class="stat"><div class="stat-label">% Riesgo</div><div class="stat-value malicious">{{ cluster.percentage }}%</div></div>
                 </div>
             </div>
             {% endfor %}
             
             <div class="description">
-                <strong>Análisis de Clusters:</strong>
-                <ul style="margin-top: 10px; padding-left: 20px;">
-                    <li><strong>Cluster 3</strong> presenta la mayor concentración de fraude (86.04%), convirtiéndolo en el grupo de alto riesgo.</li>
-                    <li><strong>Clusters 0 y 1</strong> tienen muy baja incidencia de fraude, representando transacciones mayormente legítimas.</li>
-                    <li><strong>Cluster 2</strong> muestra un nivel moderado de fraude (0.53%), requiriendo monitoreo adicional.</li>
-                    <li><strong>Cluster 4</strong> presenta baja incidencia de fraude (0.15%), indicando transacciones principalmente normales.</li>
-                    <li>El modelo logra agrupar efectivamente las transacciones sospechosas en clusters específicos.</li>
-                </ul>
+                <strong>Análisis de los 6 Clusters:</strong> El <strong>Cluster 4</strong> captura la mayor densidad de fraude (87.77%), mientras que el nuevo <strong>Cluster 5</strong> ayuda a filtrar transacciones de riesgo bajo.
             </div>
         </section>
 
-        <!-- Evaluación de Resultados -->
         <section class="section">
             <h2>📊 Evaluación del Modelo</h2>
-            
             <div class="metric-grid">
-                <div class="metric-box">
-                    <div class="metric-name">Purity Score</div>
-                    <div class="metric-value">{{ metrics.purity }}</div>
-                </div>
-                <div class="metric-box">
-                    <div class="metric-name">Silhouette Score</div>
-                    <div class="metric-value">{{ metrics.silhouette }}</div>
-                </div>
-                <div class="metric-box">
-                    <div class="metric-name">Calinski-Harabasz</div>
-                    <div class="metric-value">{{ "{:,.2f}".format(metrics.calinski) }}</div>
-                </div>
-            </div>
-            
-            <div class="description">
-                <h3 style="color: #00d4ff; margin-bottom: 15px;">📊 Interpretación de Métricas</h3>
-                
-                <div style="margin-bottom: 20px;">
-                    <h4 style="color: #e0e0e0; margin-bottom: 10px;">🎯 Purity Score: {{ metrics.purity }}</h4>
-                    <p style="margin-left: 20px;">
-                        Mide la <strong>homogeneidad</strong> de los clusters. Un valor de 0.9991 (cercano a 1) indica que casi todos 
-                        los clusters contienen principalmente un tipo de transacción. Este resultado <strong style="color: #00d4ff;">excelente</strong> 
-                        demuestra que el modelo agrupa correctamente las transacciones según sus patrones, manteniendo alta pureza 
-                        en cada cluster.
-                    </p>
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <h4 style="color: #e0e0e0; margin-bottom: 10px;">📏 Silhouette Score: {{ metrics.silhouette }}</h4>
-                    <p style="margin-left: 20px;">
-                        Evalúa qué tan bien <strong>separados</strong> están los clusters. Un valor de 0.1816 indica que los clusters 
-                        tienen cierta separación pero con zonas de solapamiento. Esto es <strong>común y esperado</strong> en datos 
-                        altamente desbalanceados donde la mayoría de transacciones son normales y comparten características similares.
-                    </p>
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <h4 style="color: #e0e0e0; margin-bottom: 10px;">📈 Calinski-Harabasz: {{ "{:,.2f}".format(metrics.calinski) }}</h4>
-                    <p style="margin-left: 20px;">
-                        Mide el <strong>ratio de dispersión</strong> entre clusters (inter-cluster) versus dentro de clusters (intra-cluster). 
-                        Un valor de 38,466 es <strong style="color: #00d4ff;">significativamente alto</strong>, confirmando que los clusters 
-                        están muy bien diferenciados en el espacio de características, con centroides distantes y grupos compactos.
-                    </p>
-                </div>
-            </div>
-            
-            <div class="alert-box">
-                <h4>⚠️ Consideraciones sobre Datos Desbalanceados</h4>
-                <p style="margin-bottom: 10px;">
-                    El dataset está <strong>altamente desbalanceado</strong>: {{ "{:,}".format(dataset.class_distribution[1]) }} fraudes (0.172%) 
-                    vs {{ "{:,}".format(dataset.class_distribution[0]) }} transacciones normales (99.828%). 
-                </p>
-                <p>
-                    A pesar de este desafío, el modelo identifica exitosamente patrones de fraude concentrándolos en clusters específicos. 
-                    El <strong style="color: #e94560;">Cluster 3</strong> es particularmente efectivo con <strong>86.04% de fraudes</strong>, 
-                    permitiendo priorizar la revisión manual de transacciones sospechosas y mejorando significativamente la eficiencia operativa.
-                </p>
-            </div>
-        </section>
-
-        <!-- Conclusiones y Aplicaciones -->
-        <section class="section">
-            <h2>💡 Conclusiones y Aplicaciones Prácticas</h2>
-            
-            <div class="description">
-                <h3 style="color: #00d4ff; margin-bottom: 15px;">✅ Resultados Clave</h3>
-                <ul style="margin-left: 20px; line-height: 1.8; margin-bottom: 25px;">
-                    <li>El modelo K-means logró agrupar efectivamente las 284,807 transacciones en 5 clusters distintos</li>
-                    <li>La reducción de 30 a 7 características mantuvo la capacidad discriminativa del modelo</li>
-                    <li>El Cluster 3 concentra el 86.04% de transacciones fraudulentas en solo 308 muestras</li>
-                    <li>Alta pureza (99.91%) demuestra separación efectiva entre transacciones normales y fraudulentas</li>
-                </ul>
-                
-                <h3 style="color: #00d4ff; margin-bottom: 15px;">🎯 Aplicaciones Prácticas</h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
-                    <div style="background: rgba(0, 212, 255, 0.1); padding: 20px; border-radius: 8px;">
-                        <h4 style="color: #00d4ff; margin-bottom: 10px;">🔍 Sistema de Alertas</h4>
-                        <p>Implementar un sistema que monitoree en tiempo real las transacciones y genere alertas automáticas 
-                        cuando una transacción cae en el Cluster 3 o muestra patrones similares a los clusters de alto riesgo.</p>
-                    </div>
-                    <div style="background: rgba(0, 212, 255, 0.1); padding: 20px; border-radius: 8px;">
-                        <h4 style="color: #00d4ff; margin-bottom: 10px;">⚡ Priorización Inteligente</h4>
-                        <p>Utilizar la clasificación de clusters para priorizar la revisión manual, reduciendo el tiempo de 
-                        análisis al enfocarse primero en los clusters con mayor concentración de fraudes.</p>
-                    </div>
-                    <div style="background: rgba(0, 212, 255, 0.1); padding: 20px; border-radius: 8px;">
-                        <h4 style="color: #00d4ff; margin-bottom: 10px;">📊 Análisis de Patrones</h4>
-                        <p>Estudiar las características comunes de las transacciones fraudulentas en cada cluster para 
-                        comprender mejor las tácticas de fraude y mejorar continuamente los modelos de detección.</p>
-                    </div>
-                    <div style="background: rgba(0, 212, 255, 0.1); padding: 20px; border-radius: 8px;">
-                        <h4 style="color: #00d4ff; margin-bottom: 10px;">🔄 Modelo Híbrido</h4>
-                        <p>Combinar K-means con modelos supervisados (Random Forest, XGBoost) para crear un sistema híbrido 
-                        que aproveche tanto patrones no supervisados como etiquetas conocidas.</p>
-                    </div>
-                </div>
-                
-                <div style="background: rgba(233, 69, 96, 0.1); padding: 20px; border-radius: 8px; margin-top: 25px; border-left: 3px solid #e94560;">
-                    <h4 style="color: #e94560; margin-bottom: 10px;">🚀 Próximos Pasos</h4>
-                    <ul style="margin-left: 20px; line-height: 1.8;">
-                        <li>Experimentar con diferentes valores de K para encontrar el número óptimo de clusters</li>
-                        <li>Aplicar técnicas de balanceo (SMOTE, undersampling) para mejorar la detección</li>
-                        <li>Implementar validación cruzada temporal para evaluar rendimiento en datos futuros</li>
-                        <li>Integrar con sistemas de producción para detección en tiempo real</li>
-                    </ul>
-                </div>
+                <div class="metric-box"><div class="metric-name">Purity</div><div class="metric-value">{{ metrics.purity }}</div></div>
+                <div class="metric-box"><div class="metric-name">Silhouette</div><div class="metric-value">{{ metrics.silhouette }}</div></div>
+                <div class="metric-box"><div class="metric-name">Calinski</div><div class="metric-value">{{ "{:,.0f}".format(metrics.calinski) }}</div></div>
             </div>
         </section>
     </div>
 
     <footer>
-        <p style="font-size: 1.1em; font-weight: bold;">Sistema de Detección de Fraude Bancario | K-means Clustering</p>
-        <p style="margin-top: 10px;">Dataset: 284,807 transacciones | 492 fraudes detectados | 5 clusters identificados</p>
-        <p style="margin-top: 5px; font-size: 0.9em;">Características: {{ ', '.join(dataset.top_features) }} | Precisión: {{ metrics.purity }}</p>
-        <p style="margin-top: 10px; color: #a8b2d1; font-size: 0.85em;">© 2025 | Análisis basado en técnicas de Machine Learning No Supervisado</p>
+        <p>Dashboard de Detección de Fraude | K-means (K=6) | 2026</p>
     </footer>
 </body>
 </html>

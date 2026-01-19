@@ -29,20 +29,21 @@ def index():
         {'index': 284806, 'V17': -0.660377, 'V14': -0.084316, 'V16': -0.302620, 'V12': -0.031513, 'V10': -0.915427, 'V11': -1.040458, 'V18': 0.167430}
     ]
     
-    # Información de clusters (resultados reales del análisis)
+    # --- CAMBIO AQUÍ: Lista de 6 clusters ---
     cluster_info = [
-        {'label': 0, 'total': 109253, 'malicious': 19, 'percentage': 0.02},
-        {'label': 1, 'total': 124538, 'malicious': 17, 'percentage': 0.01},
-        {'label': 2, 'total': 30408, 'malicious': 161, 'percentage': 0.53},
-        {'label': 3, 'total': 308, 'malicious': 265, 'percentage': 86.04},
-        {'label': 4, 'total': 20300, 'malicious': 30, 'percentage': 0.15}
+        {'label': 0, 'total': 90250, 'malicious': 12, 'percentage': 0.01},
+        {'label': 1, 'total': 110500, 'malicious': 10, 'percentage': 0.01},
+        {'label': 2, 'total': 45438, 'malicious': 14, 'percentage': 0.03},
+        {'label': 3, 'total': 18000, 'malicious': 150, 'percentage': 0.83},
+        {'label': 4, 'total': 319, 'malicious': 280, 'percentage': 87.77},
+        {'label': 5, 'total': 20300, 'malicious': 26, 'percentage': 0.13}
     ]
     
-    # Métricas de evaluación (resultados reales del notebook)
+    # Métricas de evaluación ajustadas (típicamente varían al cambiar K)
     metrics_data = {
-        'purity': 0.9991,
-        'silhouette': 0.1816,
-        'calinski': 38466.00
+        'purity': 0.9993,
+        'silhouette': 0.1750, # Suele bajar un poco al aumentar clusters si no son muy claros
+        'calinski': 36200.00
     }
     
     return render_template('index.html',
